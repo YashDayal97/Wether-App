@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkyPulse | Weather Forecast</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { min-height: 100vh; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #686de0 100%); display: flex; justify-content: center; align-items: center; padding: 20px; color: #ffffff; }
+    .app-container { width: 100%; max-width: 440px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; padding: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
+    .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+    .input-group { position: relative; flex: 1; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 14px; color: rgba(255, 255, 255, 0.7); }
+    .input-group input { width: 100%; padding: 12px 45px 12px 40px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.15); color: #fff; font-size: 0.95rem; outline: none; transition: all 0.3s ease; }
+    .input-group input::placeholder { color: rgba(255, 255, 255, 0.6); }
+    #search-btn, #location-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+    #location-btn { width: 46px; height: 46px; }
+    #search-btn { position: absolute; right: 4px; width: 36px; height: 36px; border-radius: 10px; border: none; background: rgba(255, 255, 255, 0.25); }
+    #search-btn:hover, #location-btn:hover { background: rgba(255, 255, 255, 0.4); }
+    .error-msg { background: rgba(235, 77, 75, 0.3); border: 1px solid rgba(235, 77, 75, 0.6); padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .hidden { display: none !important; }
+    .current-card { text-align: center; }
+    .location-details h1 { font-size: 1.7rem; font-weight: 600; }
+    .location-details p { font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); }
+    .weather-main { margin: 20px 0; }
+    .temp-wrapper { font-size: 3.8rem; font-weight: 700; }
+    .temp-wrapper .unit { font-size: 1.8rem; font-weight: 400; vertical-align: top; }
+    .condition-wrapper { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .condition-wrapper i { font-size: 1.4rem; color: #f1c40f; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; }
+    .metric-card { background: rgba(255, 255, 255, 0.1); padding: 10px 6px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+    .metric-card i { font-size: 1.1rem; color: rgba(255, 255, 255, 0.85); }
+    .metric-card .label { font-size: 0.68rem; color: rgba(255, 255, 255, 0.65); }
+    .metric-card .val { font-size: 0.85rem; font-weight: 600; }
+    .forecast-section { margin-top: 24px; }
+    .forecast-section h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 10px; color: rgba(255, 255, 255, 0.9); }
+    .forecast-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .forecast-card { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 8px 2px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .forecast-card .day { font-size: 0.72rem; color: rgba(255, 255, 255, 0.8); }
+    .forecast-card i { font-size: 1rem; color: #f1c40f; }
+    .forecast-card .f-temp { font-size: 0.78rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="search-box">
+      <div class="input-group">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="city-input" placeholder="Search city..." autocomplete="off" />
+        <button id="search-btn"><i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+      <button id="location-btn" title="Use Current Location">
+        <i class="fa-solid fa-location-crosshairs"></i>
+      </button>
+    </header>
+
+    <div id="error-msg" class="error-msg hidden">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="error-text">City not found.</span>
+    </div>
+
+    <main id="weather-content">
+      <section class="current-card">
+        <div class="location-details">
+          <h1 id="city-name">--</h1>
+          <p id="current-date">--</p>
+        </div>
+
+        <div class="weather-main">
+          <div class="temp-wrapper">
+            <span id="temp-val">--</span><span class="unit">°C</span>
+          </div>
+          <div class="condition-wrapper">
+            <i id="weather-icon" class="fa-solid fa-sun"></i>
+            <p id="weather-desc">--</p>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <i class="fa-solid fa-temperature-half"></i>
+            <div>
+              <p class="label">Feels Like</p>
+              <p id="feels-like" class="val">--°C</p>
+            </div>
+          </div>
+          <div class="metric-card">
+            <i class="fa-solid fa-droplet"></i>
+            <div>
+              <p class="label">Humidity</p>
+              <p id="humidity" class="val">--%</p>
+            </div>
+          </div>
+          <div class="metric-card">
+            <i class="fa-solid fa-wind"></i>
+            <div>
+              <p class="label">Wind Speed</p>
+              <p id="wind-speed" class="val">-- km/h</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="forecast-section">
+        <h3>5-Day Forecast</h3>
+        <div id="forecast-grid" class="forecast-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Configuration & APIs
+    const GEO_API = "https://geocoding-api.open-meteo.com/v1/search";
+    const WEATHER_API = "https://api.open-meteo.com/v1/forecast";
+
+    // DOM Elements
+    const cityInput = document.getElementById("city-input");
+    const searchBtn = document.getElementById("search-btn");
+    const locationBtn = document.getElementById("location-btn");
+    const errorMsg = document.getElementById("error-msg");
+    const errorText = document.getElementById("error-text");
+
+    // Weather Code to Icon/Description Mapping
+    const weatherMap = {
+      0: { desc: "Clear Sky", icon: "fa-sun" },
+      1: { desc: "Mainly Clear", icon: "fa-cloud-sun" },
+      2: { desc: "Partly Cloudy", icon: "fa-cloud-sun" },
+      3: { desc: "Overcast", icon: "fa-cloud" },
+      45: { desc: "Foggy", icon: "fa-smog" },
+      51: { desc: "Light Drizzle", icon: "fa-cloud-rain" },
+      61: { desc: "Slight Rain", icon: "fa-cloud-showers-heavy" },
+      71: { desc: "Snowfall", icon: "fa-snowflake" },
+      95: { desc: "Thunderstorm", icon: "fa-bolt" }
+    };
+
+    // Load default city on start
+    document.addEventListener("DOMContentLoaded", () => fetchWeatherByCity("London"));
+
+    // Event Listeners
+    searchBtn.addEventListener("click", () => handleSearch());
+    cityInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleSearch(); });
+
+    function handleSearch() {
+      const city = cityInput.value.trim();
+      if (city) fetchWeatherByCity(city);
+    }
+
+    // Geolocation Handling
+    locationBtn.addEventListener("click", () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude, "Your Location"),
+          () => showError("Location permission denied.")
+        );
+      } else {
+        showError("Geolocation not supported.");
+      }
+    });
+
+    // Fetch Coordinates by City Name
+    async function fetchWeatherByCity(city) {
+      hideError();
+      try {
+        const res = await fetch(`${GEO_API}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+        const data = await res.json();
+        
+        if (!data.results || data.results.length === 0) {
+          return showError(`City "${city}" not found.`);
+        }
+        
+        const { latitude, longitude, name, country } = data.results[0];
+        const label = country ? `${name}, ${country}` : name;
+        fetchWeatherByCoords(latitude, longitude, label);
+      } catch (err) {
+        showError("Error connecting to weather service.");
+      }
+    }
+
+    // Fetch Weather Data using Coordinates
+    async function fetchWeatherByCoords(lat, lon, label) {
+      hideError();
+      try {
+        const url = `${WEATHER_API}?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max&timezone=auto`;
+        const res = await fetch(url);
+        const data = await res.json();
+        updateUI(data, label);
+      } catch (err) {
+        showError("Failed to fetch weather data.");
+      }
+    }
+
+    // Update the Dashboard UI
+    function updateUI(data, label) {
+      const curr = data.current;
+      const daily = data.daily;
+
+      // Update Current Weather
+      document.getElementById("city-name").textContent = label;
+      document.getElementById("current-date").textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+      document.getElementById("temp-val").textContent = Math.round(curr.temperature_2m);
+      
+      const wInfo = weatherMap[curr.weather_code] || { desc: "Clear", icon: "fa-sun" };
+      document.getElementById("weather-desc").textContent = wInfo.desc;
+      document.getElementById("weather-icon").className = `fa-solid ${wInfo.icon}`;
+
+      document.getElementById("feels-like").textContent = `${Math.round(curr.apparent_temperature)}°C`;
+      document.getElementById("humidity").textContent = `${curr.relative_humidity_2m}%`;
+      document.getElementById("wind-speed").textContent = `${Math.round(curr.wind_speed_10m)} km/h`;
+
+      // Update 5-Day Forecast
+      const forecastGrid = document.getElementById("forecast-grid");
+      forecastGrid.innerHTML = "";
+
+      for (let i = 0; i < 5; i++) {
+        const d = new Date(daily.time[i]);
+        const day = i === 0 ? "Today" : d.toLocaleDateString('en-US', { weekday: 'short' });
+        const fCode = weatherMap[daily.weather_code[i]] || { icon: "fa-sun" };
+
+        const card = document.createElement("div");
+        card.className = "forecast-card";
+        card.innerHTML = `
+          <span class="day">${day}</span>
+          <i class="fa-solid ${fCode.icon}"></i>
+          <span class="f-temp">${Math.round(daily.temperature_2m_max[i])}°C</span>
+        `;
+        forecastGrid.appendChild(card);
+      }
+    }
+
+    function showError(msg) { 
+      errorText.textContent = msg; 
+      errorMsg.classList.remove("hidden"); 
+    }
+    
+    function hideError() { 
+      errorMsg.classList.add("hidden"); 
+    }
+  </script>
+</body>
+</html>
